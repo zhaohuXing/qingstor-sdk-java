@@ -16,7 +16,7 @@ test:
 		echo "ERROR: Command \"javac\" not found."; \
 	fi
 	rm -f build/libs/qingstor*test*.jar
-	./gradlew buildTestJar
+	gradle buildTestJar
 	rm -fr tests/jars
 	mkdir tests/jars
 	cp build/libs/qingstor*test*.jar tests/jars/
@@ -37,7 +37,7 @@ generate:
 		--service=qingstor --service-api-version=latest \
 		--spec="./specs" --template="./template" --output="./src/main/java/com/qingstor/sdk/service"
 	rm ./src/main/java/com/qingstor/sdk/service/Object.java
-	./gradlew formatGenerateCode
+	gradle formatGenerateCode
 	@echo "ok"
 
 update:
@@ -46,12 +46,12 @@ update:
 
 unit:
 	@echo "run unit test"
-	./gradlew test
+	gradle test
 	@echo "ok"
 	
 buildJar:
 	@echo "run build jar"
-	./gradlew buildJar
-	./gradlew buildIncludeDependentJar
+	gradle buildJar
+	gradle buildIncludeDependentJar
 	@echo "ok"
 

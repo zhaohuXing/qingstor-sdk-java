@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import okhttp3.Request;
+import com.squareup.okhttp.Request;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class QSRequest implements ResourceRequest {

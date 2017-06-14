@@ -372,7 +372,7 @@ public class QSJSONUtil {
         return obj;
     }
 
-    public static void responceFillValue2Object(okhttp3.Response response, Object targetObj) {}
+    public static void responceFillValue2Object(com.squareup.okhttp.Response response, Object targetObj) {}
 
     public static boolean jsonFillValue2Object(String jsonStr, Object targetObj) {
         JSONObject o = toJSONObject(jsonStr);

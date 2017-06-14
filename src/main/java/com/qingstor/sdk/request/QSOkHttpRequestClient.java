@@ -39,16 +39,17 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Headers;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import okhttp3.internal.Util;
-import okhttp3.internal.http.HttpMethod;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Headers;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
+import com.squareup.okhttp.internal.Util;
+import com.squareup.okhttp.internal.http.HttpMethod;
 import okio.BufferedSink;
 import org.json.JSONObject;
 
@@ -69,11 +70,11 @@ public class QSOkHttpRequestClient {
 
     public void intiOkHttpClient() {
         client =
-                new OkHttpClient.Builder()
-                        .connectTimeout(QSConstant.HTTPCLIENT_CONNECTION_TIME_OUT, TimeUnit.SECONDS)
-                        .readTimeout(QSConstant.HTTPCLIENT_READ_TIME_OUT, TimeUnit.SECONDS)
-                        .writeTimeout(QSConstant.HTTPCLIENT_WRITE_TIME_OUT, TimeUnit.SECONDS)
-                        .build();
+                new OkHttpClient();
+        
+        client.setConnectTimeout(QSConstant.HTTPCLIENT_CONNECTION_TIME_OUT, TimeUnit.SECONDS);
+        client.setReadTimeout(QSConstant.HTTPCLIENT_READ_TIME_OUT, TimeUnit.SECONDS);
+        client.setWriteTimeout(QSConstant.HTTPCLIENT_WRITE_TIME_OUT, TimeUnit.SECONDS);
         unsafeClient = getUnsafeOkHttpClient();
     }
 
@@ -105,23 +106,21 @@ public class QSOkHttpRequestClient {
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-            OkHttpClient.Builder builder =
-                    new OkHttpClient.Builder()
-                            .connectTimeout(
-                                    QSConstant.HTTPCLIENT_CONNECTION_TIME_OUT, TimeUnit.SECONDS)
-                            .readTimeout(QSConstant.HTTPCLIENT_READ_TIME_OUT, TimeUnit.SECONDS)
-                            .writeTimeout(QSConstant.HTTPCLIENT_WRITE_TIME_OUT, TimeUnit.SECONDS);
-            builder.sslSocketFactory(sslSocketFactory);
-            builder.hostnameVerifier(
+            
+            OkHttpClient okHttpClient =
+                    new OkHttpClient();
+            okHttpClient.setConnectTimeout(
+                                    QSConstant.HTTPCLIENT_CONNECTION_TIME_OUT, TimeUnit.SECONDS);
+            okHttpClient.setReadTimeout(QSConstant.HTTPCLIENT_READ_TIME_OUT, TimeUnit.SECONDS);
+            okHttpClient.setWriteTimeout(QSConstant.HTTPCLIENT_WRITE_TIME_OUT, TimeUnit.SECONDS);
+            okHttpClient.setSslSocketFactory(sslSocketFactory);
+            okHttpClient.setHostnameVerifier(
                     new HostnameVerifier() {
                         @Override
                         public boolean verify(String hostname, SSLSession session) {
                             return true;
                         }
                     });
-
-            OkHttpClient okHttpClient = builder.build();
             return okHttpClient;
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage());
@@ -149,7 +148,7 @@ public class QSOkHttpRequestClient {
     public OutputModel requestAction(Request request, boolean bSafe, Class outputClass)
             throws QSException {
         Call okhttpCall = getRequestCall(bSafe, request);
-        okhttp3.Response response = null;
+        com.squareup.okhttp.Response response = null;
         try {
             OutputModel model = (OutputModel) QSParamInvokeUtil.getOutputModel(outputClass);
             response = okhttpCall.execute();
@@ -170,6 +169,7 @@ public class QSOkHttpRequestClient {
 
         Request request = new Request.Builder().url(singedUrl).build();
         // Execute the request and retrieve the response.
+        
         return request;
     }
 
@@ -178,15 +178,18 @@ public class QSOkHttpRequestClient {
         Call okhttpCall = getRequestCall(bSafe, request);
         okhttpCall.enqueue(
                 new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        onOkhttpFailure(e.getMessage(), callBack);
-                    }
+                    
+					@Override
+					public void onFailure(Request request, IOException e) {
+						// TODO Auto-generated method stub
+						onOkhttpFailure(e.getMessage(), callBack);
+					}
 
-                    @Override
-                    public void onResponse(Call call, okhttp3.Response response)
-                            throws IOException {
-                        try {
+
+					@Override
+					public void onResponse(Response response) throws IOException {
+						// TODO Auto-generated method stub
+						try {
                             if (callBack != null) {
                                 OutputModel m = QSParamInvokeUtil.getOutputModel(callBack);
                                 fillResponseValue2Object(response, m);
@@ -200,7 +203,7 @@ public class QSOkHttpRequestClient {
                                 Util.closeQuietly(response.body().source());
                             }
                         }
-                    }
+					}
                 });
         return null;
     }
@@ -217,7 +220,7 @@ public class QSOkHttpRequestClient {
         }
     }
 
-    private void fillResponseValue2Object(okhttp3.Response response, OutputModel target)
+    private void fillResponseValue2Object(com.squareup.okhttp.Response response, OutputModel target)
             throws IOException {
         int code = response.code();
         ResponseBody body = response.body();

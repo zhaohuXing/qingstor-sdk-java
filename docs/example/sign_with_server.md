@@ -1,16 +1,17 @@
 ## Sign With Server
 
-### The Local Time Is Incorrect
+If the local time of the user's clients is not synchronized with the network time, will cause the request to fail.
+There are two solutions:
+1. Calibrate the local time and keep it consistent with the network time 
+2. Deploy a signature server to obtain network time from the server
 
-If the local time of user's clients are not synchronized with the network time.
-
-You should get the network time form the server.
-
-This is an example of **the server** about how to return the right time to clients.
+This is an example of **setting the server signature time**.
 
 ```java
+// Assuming that local time is consistent with network time
 String gmtTime = QSSignatureUtil.formatGmtDate(new Date());
-return gmtTime;
+reqHandler.getBuilder().setHeader(QSConstant.HEADER_PARAM_KEY_DATE, gmtTime);
+reqHandler.sendAsync();
 ```
 
 After you get the time form the server, set the time before you call ``` requestHandler1.send(); ```.
@@ -49,6 +50,10 @@ try {
                 System.out.println("Url = " + output.getUrl());
                 }
             });
+
+    // Assuming that local time is consistent with network time
+    String gmtTime = QSSignatureUtil.formatGmtDate(new Date());
+    reqHandler.getBuilder().setHeader(QSConstant.HEADER_PARAM_KEY_DATE, gmtTime);
             
     // Step 3: get the strToSignature. Send this string to the server.
     String strToSignature = reqHandler.getStringToSignature();
@@ -62,7 +67,6 @@ try {
     // There may be a time difference between the client and the server, and the result of the signature calculation is closely related to the time.
     // So it is necessary to set the time used for the server's signature to the request.
     // You can send strToSignature to the server to get the server's signature time.
-    // The concrete server example refers to the "The Local Time Is Incorrect".
     reqHandler.getBuilder().setHeader(QSConstant.HEADER_PARAM_KEY_DATE, gmtTime);
     
     reqHandler.setSignature("accessKey", serverAuthorization);
